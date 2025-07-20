@@ -7,7 +7,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&family=Major+Mono+Display&display=swap" rel="stylesheet">
 
 
     <!-- ======================= CSS 스타일 코드 ======================= -->
@@ -22,52 +22,130 @@
             background-color: #000; 
         }
 
-        h1, h2, h3, #intro-text-container p, #start-button, .puzzle-options button {
+        h1, h2, h3, #start-button, .puzzle-options button {
             font-family: 'Do Hyeon', sans-serif;
         }
 
         .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; position: absolute; top: 0; left: 0; transition: opacity 1s ease-out; }
         
         #intro-screen {
-            background-image: url('[여기에-대구교대-야경-이미지-경로-넣기]');
-            background-size: cover;
-            background-position: center;
-            background-color: #000; 
+            background-color: #000;
             cursor: pointer;
             z-index: 100;
         }
-        #intro-screen::before {
-            content: '';
+
+        #cctv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .cctv-panel {
+            position: relative;
+            overflow: hidden;
+            background-color: #111;
+            border: 2px solid #333;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .cctv-panel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(90%) contrast(1.5) brightness(0.6);
+        }
+
+        .panel-overlay {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            z-index: -1;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+            background-size: 100% 4px;
+            animation: scanline 15s linear infinite;
         }
-        #intro-text-container p {
-            font-size: 2.5em; 
-            margin: 15px 0;
-            text-shadow: 2px 2px 5px #000;
-            height: 1.5em; 
+        
+        .panel-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: 'Major Mono Display', monospace;
+            font-size: 1.2em;
+            color: #ccffcc;
+            text-shadow: 0 0 5px #ccffcc;
         }
-        #click-prompt {
-            margin-top: 50px;
-            font-size: 1.3em;
-            color: #ccc;
-            animation: blink 1.5s infinite ease-in-out;
-            visibility: hidden;
-        }
-        .typing-cursor {
+        
+        .panel-info .rec-dot {
             display: inline-block;
-            width: 3px;
-            height: 1.1em;
-            background-color: white;
-            animation: blink 0.7s infinite;
-            vertical-align: bottom;
+            width: 12px;
+            height: 12px;
+            background-color: red;
+            border-radius: 50%;
+            box-shadow: 0 0 8px red;
+            animation: blink-rec 1s infinite;
+            margin-right: 10px;
         }
+
+        .timestamp {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-family: 'Major Mono Display', monospace;
+            font-size: 1.2em;
+            color: #ccffcc;
+            text-shadow: 0 0 5px #ccffcc;
+        }
+
+        .cctv-panel.static-effect {
+            background-image: url(https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2o5bWF0ZWRpbzhnY3JmMjR1dDdhY3l6a2x4Nmp0cTZpbTVpc2NhayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKRwpns23QM5N6g/giphy.gif);
+            background-size: cover;
+        }
+        .cctv-panel.static-effect img {
+            display: none;
+        }
+
+        #system-alert-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 110;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.7);
+            font-family: 'Major Mono Display', monospace;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #system-alert-overlay h1 {
+            font-size: 6em;
+            color: #ff3333;
+            text-shadow: 0 0 10px #ff3333;
+            animation: alert-flicker 1.5s infinite;
+        }
+        
+        #system-alert-overlay h2 {
+            font-size: 2em;
+            color: #fff;
+            margin-top: 20px;
+            opacity: 0;
+        }
+        
         #intro-screen.fade-out { opacity: 0; }
         
-        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes scanline { from { background-position: 0 0; } to { background-position: 0 100%; } }
+        @keyframes blink-rec { 50% { opacity: 0.5; } }
+        @keyframes alert-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
 
         #start-screen { display: none; background-color: #000000; z-index: 90; }
         #start-screen h1 { font-size: 3em; margin-bottom: 20px; text-shadow: 2px 2px 4px #000; }
@@ -76,79 +154,72 @@
         .input-group input { padding: 10px; border-radius: 5px; border: none; font-size: 1em; font-family: 'Gowun Dodum', sans-serif;} 
         #start-button { padding: 15px 40px; font-size: 1.8em; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; transition: background-color 0.3s; }
         #start-button:hover { background-color: #45a049; }
-
         .room { width: 100%; height: 100vh; background-size: contain; background-position: center; background-repeat: no-repeat; display: none; position: relative; }
         .room.current-room { display: block; }
-
-        #room1.current-room {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #room1-wrapper {
-            position: relative;
-            aspect-ratio: 16 / 9;
-            width: 100%;
-            max-width: 1280px; 
-        }
-        
-        #room1-wrapper img {
-            width: 100%; 
-            height: 100%; 
-            display: block;
-        }
-
+        #room1.current-room { display: flex; justify-content: center; align-items: center; }
+        #room1-wrapper { position: relative; aspect-ratio: 16 / 9; width: 100%; max-width: 1280px; }
+        #room1-wrapper img { width: 100%; height: 100%; display: block; }
         #room2 { background-image: url('Whisk_storyboard29a0920f4c6646e7ad7c625e.png'); }
         #room3 { background-image: url('KakaoTalk_20250720_095411093_01.jpg'); }
-
         .clickable-layer { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; cursor: pointer; background-color: rgba(0, 0, 0, 0.2); }
         .clickable-layer h2 { color: white; font-size: 3em; text-shadow: 2px 2px 4px #000000; }
-
         #password-section-room1 { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 10px; text-align: center; }
         #password-input-room1 { padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin: 0 5px; }
         button { padding: 8px 15px; border: none; background-color: #4CAF50; color: white; border-radius: 5px; cursor: pointer; font-family: 'Gowun Dodum', sans-serif; }
-        
         .game-ui { position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 10px 15px; border-radius: 8px; font-size: 1.2em; z-index: 50; }
         #timer { top: 20px; left: 20px; display: none; font-family: 'Do Hyeon', sans-serif; }
         #hints-container { top: 20px; right: 20px; }
         #hints-container h4 { font-family: 'Do Hyeon', sans-serif; }
-
         .popup { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.6); width: 80%; max-width: 500px; text-align: center; color: #333; }
         #puzzle-container h3 { margin-top: 0; font-size: 1.5em; }
         .puzzle-options button { display: block; width: 100%; margin: 10px 0; padding: 15px; font-size: 1.2em; }
-        
-        #escape-success { 
-            background-color: rgba(255, 255, 255, 0.95); 
-            padding: 40px; 
-            /* [수정] z-index는 더 이상 크게 중요하지 않지만 그대로 둠 */
-            z-index: 210;
-        }
+        #escape-success { background-color: rgba(255, 255, 255, 0.95); padding: 40px; z-index: 210; }
         #escape-success h1 { font-size: 2.5em; }
         #escape-success p { font-size: 1.3em; }
 
-        /* [삭제] 성공 화면 배경 스타일 삭제 */
+        /* [삭제] 기존의 테두리 전체를 빛나게 하던 키프레임 삭제 */
         /*
-        #success-background {
-            display: none; 
-            background-image: url('ogp_img.jpg');
-            background-size: cover;
-            background-position: center;
-            z-index: 200;
-        }
-        */
-
         @keyframes pulse-glow {
             0% { box-shadow: 0 0 3px 2px rgba(255, 255, 224, 0.6); }
             50% { box-shadow: 0 0 12px 6px rgba(255, 255, 224, 0.2); }
             100% { box-shadow: 0 0 3px 2px rgba(255, 255, 224, 0.6); }
         }
+        */
 
+        /* [추가] 새로운 빛점 효과를 위한 키프레임 */
+        @keyframes pulse-light-dot {
+            0% {
+                transform: scale(0.9);
+                box-shadow: 0 0 4px #fff, 0 0 8px #fff, 0 0 12px #ffff99;
+            }
+            50% {
+                transform: scale(1.2);
+                box-shadow: 0 0 8px #fff, 0 0 16px #fff, 0 0 24px #ffff99;
+            }
+            100% {
+                transform: scale(0.9);
+                box-shadow: 0 0 4px #fff, 0 0 8px #fff, 0 0 12px #ffff99;
+            }
+        }
+        
+        /* [수정] interactive-glow 클래스 스타일 변경 */
         .interactive-glow {
             position: absolute;
-            border-radius: 15px;
-            animation: pulse-glow 2s infinite ease-in-out;
             pointer-events: none; 
+            /* animation 속성 제거. 이제 ::after 에서 애니메이션을 담당 */
+        }
+
+        /* [추가] 빛점 효과를 담당할 ::after 가상 요소 스타일 */
+        .interactive-glow::after {
+            content: '';
+            position: absolute;
+            top: 5px;  /* 컨테이너 상단에서 5px 안쪽 */
+            right: 5px; /* 컨테이너 우측에서 5px 안쪽 */
+            width: 10px;
+            height: 10px;
+            background-color: #ffffcc;
+            border-radius: 50%;
+            animation: pulse-light-dot 2s infinite ease-in-out;
         }
 
         #glow-desk {
@@ -165,34 +236,57 @@
 </head>
 <body>
 
+    <!-- 이하 HTML 및 JavaScript는 이전과 동일합니다 -->
+
     <!-- ======================= HTML 구조 (Body) ======================= -->
     
-    <audio id="bgm" src="[여기에-배경음악-오디오-경로-넣기]" loop></audio>
-    <audio id="click-sound" src="[여기에-클릭-효과음-경로-넣기]"></audio>
+    <audio id="bgm" src="[메인-배경음악-경로]" loop></audio>
+    <audio id="click-sound" src="[클릭-효과음-경로]"></audio>
+    <audio id="ambient-hum" src="[ambient-hum.mp3]" loop></audio>
+    <audio id="turn-on-sound" src="[cctv-turn-on.mp3]"></audio>
+    <audio id="static-sound" src="[static-noise.mp3]"></audio>
+    <audio id="alarm-sound" src="[klaxon-alarm.mp3]" loop></audio>
 
-    <!-- 인트로 화면 -->
     <div id="intro-screen" class="screen" onclick="showStartScreen()">
-        <div id="intro-text-container">
-            <p id="intro-line-1"></p>
-            <p id="intro-line-2"></p>
-            <p id="intro-line-3"></p>
-            <p id="intro-line-4"></p>
+        <div id="cctv-grid">
+            <div id="cam-1" class="cctv-panel">
+                <img src="[cctv-image-1.jpg]">
+                <div class="panel-overlay"></div>
+                <div class="panel-info"><span class="rec-dot"></span>CAM-01</div>
+                <div class="timestamp">08:59:50</div>
+            </div>
+            <div id="cam-2" class="cctv-panel">
+                 <img src="[cctv-image-2.jpg]">
+                <div class="panel-overlay"></div>
+                <div class="panel-info"><span class="rec-dot"></span>CAM-02</div>
+                <div class="timestamp">08:59:50</div>
+            </div>
+            <div id="cam-3" class="cctv-panel">
+                 <img src="[cctv-image-3.jpg]">
+                <div class="panel-overlay"></div>
+                <div class="panel-info"><span class="rec-dot"></span>CAM-03</div>
+                <div class="timestamp">08:59:50</div>
+            </div>
+            <div id="cam-4" class="cctv-panel">
+                 <img src="[cctv-image-4.jpg]">
+                <div class="panel-overlay"></div>
+                <div class="panel-info"><span class="rec-dot"></span>CAM-04</div>
+                <div class="timestamp">08:59:50</div>
+            </div>
         </div>
-        <p id="click-prompt">화면을 클릭하여 시작</p>
+        <div id="system-alert-overlay">
+            <h1 id="alert-text"></h1>
+            <h2 id="alert-subtext"></h2>
+        </div>
     </div>
     
-    <!-- 시작 화면(이름 입력) -->
     <div id="start-screen" class="screen">
         <h1>안전문제를 통해 대구교대를 탈출해라!</h1>
         <div class="input-group"><label for="grade-input">학년:</label><input type="number" id="grade-input" placeholder="예: 3"></div>
         <div class="input-group"><label for="name-input">이름:</label><input type="text" id="name-input" placeholder="예: 홍길동"></div>
         <button id="start-button" onclick="startGame()">게임 시작</button>
     </div>
-    
-    <!-- 타이머와 힌트 UI -->
     <div id="timer" class="game-ui">00:00</div>
-    
-    <!-- 방 1 -->
     <div id="room1" class="room">
         <div id="room1-wrapper">
             <img src="Whisk_storyboardc4b07928f63b4022a921f318 (1).png" alt="첫 번째 방" usemap="#room1-map">
@@ -208,17 +302,9 @@
         <div id="password-section-room1"><label for="password-input-room1">비밀번호:</label><input type="text" id="password-input-room1" placeholder="세 자리 숫자" maxlength="3"><button onclick="checkPassword()">탈출하기</button></div>
         <div id="hints-container" class="game-ui"><h4>획득한 힌트</h4><div id="hints"></div></div>
     </div>
-
-    <!-- 퍼즐 팝업 창 -->
     <div id="puzzle-container" class="popup"><h3 id="puzzle-question"></h3><div id="puzzle-options" class="puzzle-options"></div></div>
-
-    <!-- 방 2 -->
     <div id="room2" class="room"><div class="clickable-layer" onclick="handleRoom2Click()"><h2>화면을 클릭하여 주변을 살피세요</h2></div></div>
-
-    <!-- 방 3 -->
     <div id="room3" class="room"><div class="clickable-layer" onclick="handleRoom3Click()"><h2>화면을 클릭하여 문을 여세요</h2></div></div>
-
-    <!-- [삭제] 게임 클리어용 배경 삭제 -->
     <div id="escape-success" class="popup">
         <h1>탈출 성공!</h1>
         <p id="success-message-text"></p>
@@ -233,20 +319,21 @@
             fireExtinguisher: { question: '불이 났을 때, 소화기의 안전핀을 뽑은 다음 행동은?', options: ['바람을 등지고 불을 향해 호스를 겨눈다', '바람을 마주 보고 호스를 겨눈다', '일단 바닥에 마구 뿌린다'], correctAnswer: '바람을 등지고 불을 향해 호스를 겨눈다', hint: '9' }
         };
         const finalPuzzles = {
-            room2: { question: '엘리베이터에 갇혔다! 가장 먼저 해야 할 행동은?', options: ['문을 강제로 열려고 시도한다', '비상 호출 버튼을 눌러 외부와 연락한다', '될 때까지 점프해서 충격을 준다'], correctAnswer: '비상 호출 버튼을 눌러 외부와 연락한다' },
-            room3: { question: '모든 재난 상황에서 건물 밖으로 대피한 후, 가장 올바른 행동은?', options: ['안전을 위해 즉시 집으로 돌아간다', '추가 위험에 대비해 지정된 대피 장소로 이동하여 안내를 따른다', '남겨둔 물건을 챙기러 다시 건물로 들어간다'], correctAnswer: '추가 위험에 대비해 지정된 대피 장소로 이동하여 안내를 따른다' }
+            room2_elevator: { question: '엘리베이터에 갇혔다! 가장 먼저 해야 할 행동은?', options: ['문을 강제로 열려고 시도한다', '비상 호출 버튼을 눌러 외부와 연락한다', '될 때까지 점프해서 충격을 준다'], correctAnswer: '비상 호출 버튼을 눌러 외부와 연락한다' },
+            room2_fire: { question: '엘리베이터에서 빠져나왔지만, 복도에 연기가 자욱하고 화재 경보가 울리고 있다. 어떻게 대피해야 할까?', options: ['다시 엘리베이터를 타고 1층으로 간다', '젖은 수건으로 코와 입을 막고, 자세를 낮춰 비상계단으로 대피한다', '연기가 들어오지 않게 문틈을 막고 강의실에서 기다린다'], correctAnswer: '젖은 수건으로 코와 입을 막고, 자세를 낮춰 비상계단으로 대피한다' },
+            room3_exit: { question: '모든 재난 상황에서 건물 밖으로 대피한 후, 가장 올바른 행동은?', options: ['안전을 위해 즉시 집으로 돌아간다', '추가 위험에 대비해 지정된 대피 장소로 이동하여 안내를 따른다', '남겨둔 물건을 챙기러 다시 건물로 들어간다'], correctAnswer: '추가 위험에 대비해 지정된 대피 장소로 이동하여 안내를 따른다' },
+            room3_rumor: { question: '대피 장소에서 재난에 대한 확인되지 않은 소문을 들었다. 어떻게 해야 할까?', options: ['가족과 친구들에게 즉시 소문을 공유한다', '공식 재난 방송이나 관계 기관의 발표를 통해 정확한 정보를 확인한다', '가장 자극적인 내용을 위주로 인터넷 게시판에 올린다'], correctAnswer: '공식 재난 방송이나 관계 기관의 발표를 통해 정확한 정보를 확인한다' }
         };
         const correctPassword = "119";
         let collectedHints = {};
-        
         let timerInterval;
         let elapsedSeconds = 0;
         let introFinished = false;
-
         let room2State = 0; 
-        let room3State = 0; 
+        let room3State = 0;
+        let timestampInterval;
+        let correctAnswersCount = 0;
 
-        // --- DOM 요소 ---
         const introScreen = document.getElementById('intro-screen');
         const startScreen = document.getElementById('start-screen');
         const timerElement = document.getElementById('timer');
@@ -257,54 +344,81 @@
         const puzzleOptions = document.getElementById('puzzle-options');
         const hintsDisplay = document.getElementById('hints');
         const successMessageText = document.getElementById('success-message-text');
-        const clickPrompt = document.getElementById('click-prompt');
 
         const bgm = document.getElementById('bgm');
         const clickSound = document.getElementById('click-sound');
+        const ambientHum = document.getElementById('ambient-hum');
+        const turnOnSound = document.getElementById('turn-on-sound');
+        const staticSound = document.getElementById('static-sound');
+        const alarmSound = document.getElementById('alarm-sound');
 
-        const introLines = [
-            { el: document.getElementById('intro-line-1'), text: "2025년, 평화로운 대구교대..." },
-            { el: document.getElementById('intro-line-2'), text: "정체불명의 시스템이 학교 전체를 잠갔다." },
-            { el: document.getElementById('intro-line-3'), text: "탈출할 방법은 단 하나," },
-            { el: document.getElementById('intro-line-4'), text: "안전 지식을 통해 증명하는 것 뿐." }
-        ];
-
-        function typeWriter(element, text, speed) {
-            return new Promise(resolve => {
-                let i = 0;
-                element.innerHTML = ''; 
-                const cursor = '<span class="typing-cursor"></span>';
-                element.innerHTML = cursor;
-
-                const typing = setInterval(() => {
-                    if (i < text.length) {
-                        element.innerHTML = text.substring(0, i + 1) + cursor;
-                        i++;
-                    } else {
-                        clearInterval(typing);
-                        setTimeout(resolve, 500); 
-                    }
-                }, speed);
-            });
+        function playSound(sound, volume = 1.0, loop = false) {
+            sound.currentTime = 0;
+            sound.volume = volume;
+            sound.loop = loop;
+            sound.play().catch(e => console.log("Audio play failed: ", e));
         }
-        
-        async function startIntroTyping() {
-            for (const line of introLines) {
-                await typeWriter(line.el, line.text, 100); 
+
+        function updateTimestamps() {
+            const timestamps = document.querySelectorAll('.timestamp');
+            let date = new Date();
+            date.setHours(8, 59, 50);
+
+            timestampInterval = setInterval(() => {
+                date.setSeconds(date.getSeconds() + 1);
+                const timeString = date.toTimeString().split(' ')[0];
+                timestamps.forEach(ts => ts.textContent = timeString);
+            }, 1000);
+        }
+
+        async function startSurveillanceIntro() {
+            playSound(ambientHum, 0.3, true);
+
+            const panels = ['#cam-1', '#cam-2', '#cam-3', '#cam-4'];
+            for (const panelId of panels) {
+                await new Promise(r => setTimeout(r, 500));
+                playSound(turnOnSound, 0.5);
+                document.querySelector(panelId).style.opacity = 1;
             }
-            introLines[introLines.length - 1].el.querySelector('.typing-cursor').remove();
-            clickPrompt.style.visibility = 'visible';
+
+            updateTimestamps();
+            await new Promise(r => setTimeout(r, 4000));
+
+            playSound(staticSound);
+            document.querySelector('#cam-3').classList.add('static-effect');
+            
+            await new Promise(r => setTimeout(r, 1000));
+            playSound(alarmSound, 0.6, true);
+            const alertOverlay = document.getElementById('system-alert-overlay');
+            alertOverlay.style.opacity = 1;
+            document.getElementById('alert-text').textContent = "!! SYSTEM ALERT !!";
+            
+            await new Promise(r => setTimeout(r, 1500));
+            document.querySelector('#cam-1').classList.add('static-effect');
+            document.querySelector('#cam-4').classList.add('static-effect');
+            
+            await new Promise(r => setTimeout(r, 1000));
+            document.querySelector('#cam-2').classList.add('static-effect');
+            
+            await new Promise(r => setTimeout(r, 1000));
+            document.getElementById('alert-text').textContent = "LOCKDOWN PROTOCOL";
+            const subtext = document.getElementById('alert-subtext');
+            subtext.style.opacity = 1;
+            subtext.textContent = "CLICK TO PROCEED";
+            
             introFinished = true;
         }
-        
-        window.onload = startIntroTyping;
+
+        window.onload = startSurveillanceIntro;
 
         function showStartScreen() {
             if (!introFinished) return;
-
-            clickSound.play();
-            bgm.volume = 0.5;
-            bgm.play();
+            playSound(clickSound);
+            
+            ambientHum.pause();
+            alarmSound.pause();
+            clearInterval(timestampInterval);
+            playSound(bgm, 0.5, true);
 
             introScreen.classList.add('fade-out'); 
             setTimeout(() => {
@@ -357,7 +471,8 @@
 
         function checkPuzzleAnswer(puzzleId, selectedOption, puzzleData) { 
             if (selectedOption === puzzleData.correctAnswer) { 
-                alert(`정답입니다! 힌트 숫자 '${puzzleData.hint}'를 획득했습니다!`); 
+                alert(`정답입니다! 힌트 숫자 '${puzzleData.hint}'를 획득했습니다!`);
+                correctAnswersCount++;
                 collectedHints[puzzleId] = puzzleData.hint; 
                 updateHintsDisplay(); 
             } else { 
@@ -392,9 +507,15 @@
                 document.querySelector('#room2 .clickable-layer h2').textContent = '문이 열렸다. 클릭하여 퀴즈 풀기';
                 room2State = 1;
             } else if (room2State === 1) {
-                showFinalPuzzle('room2', () => {
-                    alert("정답입니다! 엘리베이터를 탈출합니다.");
-                    goToRoom(3);
+                showFinalPuzzle('room2_elevator', () => {
+                    alert("정답입니다! 다음 문제로 넘어갑니다.");
+                    document.querySelector('#room2 .clickable-layer h2').textContent = '복도에 화재가 발생했다! 클릭하여 퀴즈 풀기';
+                    room2State = 2; 
+                });
+            } else if (room2State === 2) {
+                showFinalPuzzle('room2_fire', () => {
+                    alert("정답입니다! 비상계단을 통해 탈출합니다.");
+                    goToRoom(3); 
                 });
             }
         }
@@ -402,10 +523,16 @@
         function handleRoom3Click() {
             if (room3State === 0) {
                 document.querySelector('#room3').style.backgroundImage = "url('KakaoTalk_20250720_095411093_02.jpg')";
-                document.querySelector('#room3 .clickable-layer h2').textContent = '드디어 출구가 보인다! 클릭하여 마지막 관문 통과하기';
+                document.querySelector('#room3 .clickable-layer h2').textContent = '드디어 출구가 보인다! 클릭하여 첫 번째 관문 통과하기';
                 room3State = 1;
             } else if (room3State === 1) {
-                showFinalPuzzle('room3', showSuccessScreen);
+                showFinalPuzzle('room3_exit', () => {
+                    alert("정답입니다! 마지막 관문입니다.");
+                    document.querySelector('#room3 .clickable-layer h2').textContent = '대피소에 도착했다. 클릭하여 마지막 퀴즈 풀기';
+                    room3State = 2;
+                });
+            } else if (room3State === 2) {
+                showFinalPuzzle('room3_rumor', showSuccessScreen);
             }
         }
         
@@ -424,6 +551,7 @@
 
         function checkFinalAnswer(selectedOption, puzzleData, onSuccessCallback) {
             if (selectedOption === puzzleData.correctAnswer) {
+                correctAnswersCount++;
                 puzzleContainer.style.display = 'none';
                 onSuccessCallback();
             } else {
@@ -431,19 +559,17 @@
             }
         }
         
-        // [수정] 게임 클리어 시 팝업만 표시하도록 변경
         function showSuccessScreen() {
             alert("정답입니다! 드디어 탈출에 성공했습니다!");
             clearInterval(timerInterval); 
             bgm.pause(); 
             
             const finalTime = timerElement.textContent; 
+            const totalPuzzles = Object.keys(puzzles).length + Object.keys(finalPuzzles).length;
             
-            successMessageText.innerHTML = `축하합니다, <strong>${playerName}</strong> 학생!<br>대구교대에서 무사히 탈출했습니다!<br><br><strong>탈출 기록: ${finalTime}</strong>`;
+            successMessageText.innerHTML = `축하합니다, <strong>${playerName}</strong> 학생!<br>대구교대에서 무사히 탈출했습니다!<br><br><strong>탈출 기록: ${finalTime}</strong><br><strong>정답 기록: ${totalPuzzles}개 중 ${correctAnswersCount}개 정답</strong>`;
             
             goToRoom(0); 
-
-            // [삭제] 배경을 표시하는 코드 삭제
             escapeSuccessMessage.style.display = 'block'; 
         }
 
