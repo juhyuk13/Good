@@ -3,211 +3,452 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>방탈출: 비의 무서움</title>
+    <title>대구교대를 탈출해라!</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&display=swap" rel="stylesheet">
+
+
+    <!-- ======================= CSS 스타일 코드 ======================= -->
     <style>
-        :root {
-            --font-main: 'Noto Sans KR', sans-serif;
-            --font-display: 'Cinzel', serif;
-            --color-bg: #0a0e13;
-            --color-accent: #f0e68c;
-            --color-primary: #58a6ff;
-            --color-light: rgba(255, 255, 255, 0.95);
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            font-family: 'Gowun Dodum', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
+            background-color: #000; 
         }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: var(--color-bg); font-family: var(--font-main); overflow: hidden; }
-        
-        #game-wrapper { position: relative; display: none; }
-        #game-container { position: relative; width: 1280px; height: 960px; max-width: 98vw; max-height: calc(98vw * 0.75); background: url('https://i.ibb.co/Z6PKfDx9/Whisk-storyboardc4b07928f63b4022a921f318-1.jpg') no-repeat center; background-size: contain; border-radius: 10px; box-shadow: 0 0 60px rgba(0,0,0,0.7); overflow: hidden; }
-        
-        #rain-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        #flash-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: white; opacity: 0; pointer-events: none; z-index: 15; }
 
-        .interactive-object { position: absolute; cursor: pointer; transition: all 0.3s ease-out; border-radius: 10px; }
-        .interactive-object:not(.solved):hover { transform: scale(1.05); box-shadow: 0 0 35px 8px rgba(240, 230, 140, 0.7); }
-        .solved { cursor: not-allowed; filter: grayscale(80%) brightness(0.8); }
-
-        #obj-board { top: 275px; left: 125px; width: 413px; height: 225px; }
-        #obj-projector { top: 480px; left: 245px; width: 100px; height: 75px; }
-        #obj-safe { top: 575px; left: 160px; width: 75px; height: 75px; }
-        #obj-window { top: 219px; left: 638px; width: 238px; height: 288px; }
-        #obj-door { top: 219px; left: 1106px; width: 163px; height: 438px; }
-
-        #top-ui-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; box-sizing: border-box; display: none; justify-content: space-between; align-items: center; z-index: 50; }
-        #timer-display { font-family: var(--font-display); font-size: 32px; color: white; background-color: rgba(0, 0, 0, 0.5); padding: 8px 20px; border-radius: 8px; text-shadow: 0 0 8px black; }
-        #audio-controls { font-size: 28px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; user-select: none; }
-        #audio-controls:hover { opacity: 1; }
-
-        /* [변경] 단서 수첩 위치 수정 */
-        #discovered-hints-display { 
-            position: absolute; 
-            bottom: 40px; 
-            left: 40px;  /* 20px -> 40px로 변경 */
-            background: url('https://www.transparenttextures.com/patterns/notebook.png') #fdf5e6; color: #3b2f2f; padding: 20px; border-radius: 5px; width: 250px; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); border: 1px solid #d3c5aa; z-index: 50; display: none; 
+        h1, h2, h3, #intro-text-container p, #start-button, .puzzle-options button {
+            font-family: 'Do Hyeon', sans-serif;
         }
-        #discovered-hints-display h4 { margin: 0 0 10px 0; font-size: 20px; text-align: center; border-bottom: 1px dashed #c0b298; padding-bottom: 8px; font-weight: 700; }
-        .hint-slot { font-size: 28px; font-family: var(--font-display); margin: 5px 0; padding-left: 10px; transition: opacity 0.5s; opacity: 0; }
-        .hint-slot.visible { opacity: 1; }
 
-        .modal { position: fixed; z-index: 150; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; animation: fadeIn 0.4s; }
-        .modal-content { background: #fff; padding: 40px; border-radius: 10px; width: 90%; max-width: 500px; text-align: center; border-top: 5px solid var(--color-accent); transform: translateY(-20px); opacity: 0; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { to { transform: translateY(0); opacity: 1; } }
-        h3 { font: 34px var(--font-display); margin: 0 0 15px; color: #333; }
-        p { font-size: 19px; line-height: 1.7; margin-bottom: 25px; color: #555; }
-        .clue { font: 24px var(--font-display); color: var(--color-primary); }
-        .modal-content input[type="text"] { font-family: var(--font-display); padding: 10px; font-size: 36px; text-align: center; border: 2px solid #ddd; border-radius: 5px; letter-spacing: 12px; }
-        button { font-weight: 700; padding: 15px 35px; font-size: 18px; cursor: pointer; border: none; border-radius: 5px; color: white; transition: all 0.2s; }
-        button:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .primary-btn { background-color: var(--color-primary); }
-        .secondary-btn { background-color: #6c757d; margin-left: 10px; }
-        .info-form { display: flex; flex-direction: column; gap: 12px; align-items: center; margin-bottom: 25px; }
-        .input-group { display: flex; align-items: center; width: 75%; }
-        .input-group label { width: 60px; text-align: right; margin-right: 10px; font-weight: 700; font-size: 16px; }
-        .input-group input { font-size: 16px; padding: 8px; letter-spacing: normal; flex-grow: 1; border-radius: 4px; border: 1px solid #ccc; }
-        #memory-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
-        .memory-card { width: 100px; height: 120px; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.5s; }
-        .memory-card .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 8px; font-size: 50px; }
-        .card-front { background-color: #333; color: white; transform: rotateY(180deg); }
-        .card-back { background: var(--color-primary); }
-        .memory-card.flip { transform: rotateY(180deg); }
-        .memory-card.matched { filter: brightness(0.5) grayscale(1); }
-
-        #cinematic-intro { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 200; display: flex; justify-content: center; align-items: center; color: white; text-align: center; font-family: var(--font-display); cursor: pointer; }
-        .intro-text { font-size: 4vw; opacity: 0; transition: opacity 2.5s ease-in-out; }
+        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; position: absolute; top: 0; left: 0; transition: opacity 1s ease-out; }
         
-        #success-screen { display: none; text-align: center; color: var(--color-light); animation: fadeIn 1.5s; }
-        #success-screen h2 { font: 80px var(--font-display); margin-bottom: 20px; color: var(--color-accent);}
-        #success-screen .final-time { font-size: 24px; margin-top: -10px; opacity: 0.8;}
+        #intro-screen {
+            background-image: url('[여기에-대구교대-야경-이미지-경로-넣기]');
+            background-size: cover;
+            background-position: center;
+            background-color: #000; 
+            cursor: pointer;
+            z-index: 100;
+        }
+        #intro-screen::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+        #intro-text-container p {
+            font-size: 2.5em; 
+            margin: 15px 0;
+            text-shadow: 2px 2px 5px #000;
+            height: 1.5em; 
+        }
+        #click-prompt {
+            margin-top: 50px;
+            font-size: 1.3em;
+            color: #ccc;
+            animation: blink 1.5s infinite ease-in-out;
+            visibility: hidden;
+        }
+        .typing-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.1em;
+            background-color: white;
+            animation: blink 0.7s infinite;
+            vertical-align: bottom;
+        }
+        #intro-screen.fade-out { opacity: 0; }
+        
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        #start-screen { display: none; background-color: #000000; z-index: 90; }
+        #start-screen h1 { font-size: 3em; margin-bottom: 20px; text-shadow: 2px 2px 4px #000; }
+        .input-group { margin: 15px 0; }
+        .input-group label { font-size: 1.2em; margin-right: 10px; }
+        .input-group input { padding: 10px; border-radius: 5px; border: none; font-size: 1em; font-family: 'Gowun Dodum', sans-serif;} 
+        #start-button { padding: 15px 40px; font-size: 1.8em; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; transition: background-color 0.3s; }
+        #start-button:hover { background-color: #45a049; }
+
+        .room { width: 100%; height: 100vh; background-size: contain; background-position: center; background-repeat: no-repeat; display: none; position: relative; }
+        .room.current-room { display: block; }
+
+        #room1.current-room {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #room1-wrapper {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            width: 100%;
+            max-width: 1280px; 
+        }
+        
+        #room1-wrapper img {
+            width: 100%; 
+            height: 100%; 
+            display: block;
+        }
+
+        #room2 { background-image: url('Whisk_storyboard29a0920f4c6646e7ad7c625e.png'); }
+        #room3 { background-image: url('KakaoTalk_20250720_095411093_01.jpg'); }
+
+        .clickable-layer { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; cursor: pointer; background-color: rgba(0, 0, 0, 0.2); }
+        .clickable-layer h2 { color: white; font-size: 3em; text-shadow: 2px 2px 4px #000000; }
+
+        #password-section-room1 { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 10px; text-align: center; }
+        #password-input-room1 { padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin: 0 5px; }
+        button { padding: 8px 15px; border: none; background-color: #4CAF50; color: white; border-radius: 5px; cursor: pointer; font-family: 'Gowun Dodum', sans-serif; }
+        
+        .game-ui { position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 10px 15px; border-radius: 8px; font-size: 1.2em; z-index: 50; }
+        #timer { top: 20px; left: 20px; display: none; font-family: 'Do Hyeon', sans-serif; }
+        #hints-container { top: 20px; right: 20px; }
+        #hints-container h4 { font-family: 'Do Hyeon', sans-serif; }
+
+        .popup { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.6); width: 80%; max-width: 500px; text-align: center; color: #333; }
+        #puzzle-container h3 { margin-top: 0; font-size: 1.5em; }
+        .puzzle-options button { display: block; width: 100%; margin: 10px 0; padding: 15px; font-size: 1.2em; }
+        
+        #escape-success { 
+            background-color: rgba(255, 255, 255, 0.95); 
+            padding: 40px; 
+            /* [수정] z-index는 더 이상 크게 중요하지 않지만 그대로 둠 */
+            z-index: 210;
+        }
+        #escape-success h1 { font-size: 2.5em; }
+        #escape-success p { font-size: 1.3em; }
+
+        /* [삭제] 성공 화면 배경 스타일 삭제 */
+        /*
+        #success-background {
+            display: none; 
+            background-image: url('ogp_img.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: 200;
+        }
+        */
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 3px 2px rgba(255, 255, 224, 0.6); }
+            50% { box-shadow: 0 0 12px 6px rgba(255, 255, 224, 0.2); }
+            100% { box-shadow: 0 0 3px 2px rgba(255, 255, 224, 0.6); }
+        }
+
+        .interactive-glow {
+            position: absolute;
+            border-radius: 15px;
+            animation: pulse-glow 2s infinite ease-in-out;
+            pointer-events: none; 
+        }
+
+        #glow-desk {
+            left: 23.4%; top: 69.4%; width: 15.6%; height: 20.8%;
+        }
+        #glow-window {
+            left: 58.6%; top: 27.8%; width: 15.6%; height: 41.7%;
+        }
+        #glow-extinguisher {
+            left: 3.9%; top: 34.7%; width: 11.7%; height: 20.8%;
+        }
+
     </style>
 </head>
 <body>
-    <div id="game-wrapper"> <div id="game-container"> <canvas id="rain-canvas"></canvas> <div id="flash-overlay"></div> <div id="top-ui-bar"> <div id="timer-display">00:00</div> <div id="audio-controls">🔊</div> </div> <div id="discovered-hints-display"> <h4>- 단서 수첩 -</h4> <div class="hint-slot" id="hint-board"></div> <div class="hint-slot" id="hint-projector"></div> <div class="hint-slot" id="hint-window"></div> <div class="hint-slot" id="hint-safe"></div> </div> <div class="interactive-object" id="obj-board" data-id="board"></div> <div class="interactive-object" id="obj-projector" data-id="projector"></div> <div class="interactive-object" id="obj-safe" data-id="safe"></div> <div class="interactive-object" id="obj-window" data-id="window"></div> <div class="interactive-object" id="obj-door" data-id="door"></div> </div> </div>
-    <div id="player-info-modal" class="modal"> <div class="modal-content"> <h3>참가자 정보</h3> <p>탈출을 시작하기 전에 당신의 정보를 알려주세요.</p> <div class="info-form"> <div class="input-group"> <label for="player-grade">학년:</label> <input type="text" id="player-grade"> </div> <div class="input-group"> <label for="player-class">반:</label> <input type="text" id="player-class"> </div> <div class="input-group"> <label for="player-name">이름:</label> <input type="text" id="player-name"> </div> </div> <button id="submit-info-btn" class="primary-btn">게임 시작</button> </div> </div>
-    <div id="intro-modal" class="modal"> <div class="modal-content"> <h3>폭우 속 교실</h3> <p>밖에서는 천둥 번개가 치고, 교실은 어둡다.<br>문은 잠겨있다. 교실 안의 단서를 찾아 비밀번호를 풀고 탈출해야 한다!</p> <button id="start-gameplay-btn" class="primary-btn">시작</button> </div> </div>
-    <div id="dialogue-modal" class="modal"> <div class="modal-content" id="dialogue-content"></div> </div>
-    <div id="escape-modal" class="modal"> <div class="modal-content"> <h3>비상 잠금장치</h3> <p>4자리 비밀번호를 입력하세요.</p> <input type="text" id="final-password" maxlength="4" placeholder="----" style="width: 60%;"> <button id="escape-btn" class="primary-btn">해제</button> <button class="secondary-btn" onclick="closeModal('escape-modal')">취소</button> </div> </div>
-    <div id="cinematic-intro"> <h1 class="intro-text" id="intro-line-1">A storm is coming.</h1> </div>
-    <div id="success-screen"> <h2>탈출 성공</h2> <p class="final-time" id="final-time-display"></p> <p>모든 단서를 찾아내고 무사히 교실을 빠져나왔습니다.</p> <button id="restart-btn" class="primary-btn" style="margin-top: 30px;">다시하기</button> </div>
 
+    <!-- ======================= HTML 구조 (Body) ======================= -->
+    
+    <audio id="bgm" src="[여기에-배경음악-오디오-경로-넣기]" loop></audio>
+    <audio id="click-sound" src="[여기에-클릭-효과음-경로-넣기]"></audio>
+
+    <!-- 인트로 화면 -->
+    <div id="intro-screen" class="screen" onclick="showStartScreen()">
+        <div id="intro-text-container">
+            <p id="intro-line-1"></p>
+            <p id="intro-line-2"></p>
+            <p id="intro-line-3"></p>
+            <p id="intro-line-4"></p>
+        </div>
+        <p id="click-prompt">화면을 클릭하여 시작</p>
+    </div>
+    
+    <!-- 시작 화면(이름 입력) -->
+    <div id="start-screen" class="screen">
+        <h1>안전문제를 통해 대구교대를 탈출해라!</h1>
+        <div class="input-group"><label for="grade-input">학년:</label><input type="number" id="grade-input" placeholder="예: 3"></div>
+        <div class="input-group"><label for="name-input">이름:</label><input type="text" id="name-input" placeholder="예: 홍길동"></div>
+        <button id="start-button" onclick="startGame()">게임 시작</button>
+    </div>
+    
+    <!-- 타이머와 힌트 UI -->
+    <div id="timer" class="game-ui">00:00</div>
+    
+    <!-- 방 1 -->
+    <div id="room1" class="room">
+        <div id="room1-wrapper">
+            <img src="Whisk_storyboardc4b07928f63b4022a921f318 (1).png" alt="첫 번째 방" usemap="#room1-map">
+            <map name="room1-map">
+                <area shape="rect" coords="300,500,500,650" href="#" alt="책상" onclick="showPuzzle('earthquake')">
+                <area shape="rect" coords="750,200,950,500" href="#" alt="창문" onclick="showPuzzle('typhoon')">
+                <area shape="rect" coords="50,250,200,400" href="#" alt="소화기" onclick="showPuzzle('fireExtinguisher')">
+            </map>
+            <div class="interactive-glow" id="glow-desk"></div>
+            <div class="interactive-glow" id="glow-window"></div>
+            <div class="interactive-glow" id="glow-extinguisher"></div>
+        </div>
+        <div id="password-section-room1"><label for="password-input-room1">비밀번호:</label><input type="text" id="password-input-room1" placeholder="세 자리 숫자" maxlength="3"><button onclick="checkPassword()">탈출하기</button></div>
+        <div id="hints-container" class="game-ui"><h4>획득한 힌트</h4><div id="hints"></div></div>
+    </div>
+
+    <!-- 퍼즐 팝업 창 -->
+    <div id="puzzle-container" class="popup"><h3 id="puzzle-question"></h3><div id="puzzle-options" class="puzzle-options"></div></div>
+
+    <!-- 방 2 -->
+    <div id="room2" class="room"><div class="clickable-layer" onclick="handleRoom2Click()"><h2>화면을 클릭하여 주변을 살피세요</h2></div></div>
+
+    <!-- 방 3 -->
+    <div id="room3" class="room"><div class="clickable-layer" onclick="handleRoom3Click()"><h2>화면을 클릭하여 문을 여세요</h2></div></div>
+
+    <!-- [삭제] 게임 클리어용 배경 삭제 -->
+    <div id="escape-success" class="popup">
+        <h1>탈출 성공!</h1>
+        <p id="success-message-text"></p>
+    </div>
+
+    <!-- ======================= JavaScript 로직 코드 ======================= -->
     <script>
-        // --- Sound Setup ---
-        const sfx = { bgm: new Audio('https://cdn.pixabay.com/download/audio/2022/08/03/audio_504b778267.mp3'), thunder: new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_517d057754.mp3'), click: new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_2491a51167.mp3'), correct: new Audio('https://cdn.pixabay.com/download/audio/2022/03/25/audio_9a7295055b.mp3'), unlock: new Audio('https://cdn.pixabay.com/download/audio/2022/03/24/audio_38622b724c.mp3'), flip: new Audio('https://cdn.pixabay.com/download/audio/2022/03/07/audio_8b0568f9a2.mp3') };
-        let isMuted = false;
-        function playSound(sound) { if(!isMuted) { sfx[sound].currentTime = 0; sfx[sound].play(); } }
-        function toggleMute() { isMuted = !isMuted; sfx.bgm.muted = isMuted; document.getElementById('audio-controls').textContent = isMuted ? '🔇' : '🔊'; }
+        let playerName = '';
+        const puzzles = {
+            earthquake: { question: '쿵! 지진이 발생했다! 건물 안에 있을 때 가장 올바른 행동은?', options: ['엘리베이터를 타고 빨리 내려간다', '튼튼한 책상 밑으로 들어가 몸을 보호한다', '창문을 활짝 연다'], correctAnswer: '튼튼한 책상 밑으로 들어가 몸을 보호한다', hint: '1' },
+            typhoon: { question: '강한 태풍이 오고 있다. 어떻게 대비해야 할까?', options: ['바람이 잘 통하게 창문을 열어둔다', '창문과 떨어진 안전한 곳으로 이동한다', '옥상으로 올라가 상황을 살핀다'], correctAnswer: '창문과 떨어진 안전한 곳으로 이동한다', hint: '1' },
+            fireExtinguisher: { question: '불이 났을 때, 소화기의 안전핀을 뽑은 다음 행동은?', options: ['바람을 등지고 불을 향해 호스를 겨눈다', '바람을 마주 보고 호스를 겨눈다', '일단 바닥에 마구 뿌린다'], correctAnswer: '바람을 등지고 불을 향해 호스를 겨눈다', hint: '9' }
+        };
+        const finalPuzzles = {
+            room2: { question: '엘리베이터에 갇혔다! 가장 먼저 해야 할 행동은?', options: ['문을 강제로 열려고 시도한다', '비상 호출 버튼을 눌러 외부와 연락한다', '될 때까지 점프해서 충격을 준다'], correctAnswer: '비상 호출 버튼을 눌러 외부와 연락한다' },
+            room3: { question: '모든 재난 상황에서 건물 밖으로 대피한 후, 가장 올바른 행동은?', options: ['안전을 위해 즉시 집으로 돌아간다', '추가 위험에 대비해 지정된 대피 장소로 이동하여 안내를 따른다', '남겨둔 물건을 챙기러 다시 건물로 들어간다'], correctAnswer: '추가 위험에 대비해 지정된 대피 장소로 이동하여 안내를 따른다' }
+        };
+        const correctPassword = "119";
+        let collectedHints = {};
+        
+        let timerInterval;
+        let elapsedSeconds = 0;
+        let introFinished = false;
 
-        // --- Rain Effect ---
-        const canvas = document.getElementById('rain-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 1280; canvas.height = 960;
-        let drops = Array(1500).fill().map(() => ({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, l: Math.random() * 1, xs: -4, ys: Math.random() * 10 + 10 }));
-        function drawRain() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.strokeStyle = 'rgba(174,194,224,0.5)'; ctx.lineWidth = 1; ctx.lineCap = 'round'; drops.forEach(p => { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + p.l * p.xs, p.y + p.l * p.ys); ctx.stroke(); }); moveDrops(); }
-        function moveDrops() { drops.forEach(p => { p.x += p.xs; p.y += p.ys; if (p.x < 0 || p.y > canvas.height) { p.x = Math.random() * canvas.width; p.y = -20; } }); }
-        function animateRain() { requestAnimationFrame(animateRain); drawRain(); }
-        
-        // --- Game State & Init ---
-        let puzzles, gameState; const FINAL_PASSWORD = "2025";
-        let timerInterval = null, secondsElapsed = 0;
-        
-        function initGame() {
-            puzzles = {
-                board: { solved: false, el: document.getElementById('obj-board'), number: '2' },
-                projector: { solved: false, el: document.getElementById('obj-projector'), number: '0' },
-                window: { solved: false, el: document.getElementById('obj-window'), number: '2' },
-                safe: { solved: false, el: document.getElementById('obj-safe'), number: '5' }
-            };
-            sfx.bgm.loop = true; sfx.bgm.volume = 0.15;
-            document.getElementById('audio-controls').onclick = toggleMute;
-            updateObjectStates();
-        }
-        function updateObjectStates() { for (const key in puzzles) { puzzles[key].el.classList.toggle('solved', puzzles[key].solved); } }
-        
-        const openModal = (id) => { playSound('click'); document.getElementById(id).style.display = 'flex'; }
-        const closeModal = (id) => document.getElementById(id).style.display = 'none';
-        function showDialogue(title, description, details = "") { const contentDiv = document.getElementById('dialogue-content'); contentDiv.innerHTML = `<h3>${title}</h3><p>${description}</p><div>${details}</div><button class="secondary-btn" onclick="closeModal('dialogue-modal')" style="margin-top: 20px;">닫기</button>`; openModal('dialogue-modal'); }
-        
-        function updateDiscoveredHints(puzzleKey) {
-            const slot = document.getElementById(`hint-${puzzleKey}`);
-            if (slot) { slot.textContent = `비밀번호 조각 [ ${puzzles[puzzleKey].number} ] 획득`; slot.classList.add('visible'); }
-        }
+        let room2State = 0; 
+        let room3State = 0; 
 
-        function handleObjectClick(id) {
-            if (!id || puzzles[id]?.solved) return;
-            playSound('click'); const puzzle = puzzles[id];
-            switch (id) {
-                case 'board': createMemoryGame(id); break;
-                case 'projector':
-                    puzzle.solved = true; updateDiscoveredHints(id);
-                    showDialogue("프로젝터", "프로젝터가 칠판에 간단한 수식을 비춘다. '사과 - 사과 = ?'", `<p class="clue">정답: ${puzzle.number}</p>`);
-                    break;
-                case 'window':
-                    const quizOptions = `<button onclick="solveQuiz(false)" class="primary-btn" style="margin: 5px;">증발</button><button onclick="solveQuiz(true)" class="primary-btn" style="margin: 5px;">응결</button><button onclick="solveQuiz(false)" class="primary-btn" style="margin: 5px;">융해</button>`;
-                    showDialogue("창문 너머", "찬 유리에 김이 서렸다. 공기 중의 수증기가 물방울로 변하는 이 현상은 무엇일까?", quizOptions);
-                    break;
-                case 'safe':
-                    const safeDetails = `<input type="text" id="safe-answer" maxlength="1" style="width: 20%; letter-spacing: 0;"><button class="primary-btn" onclick="solveSafe()">확인</button>`;
-                    showDialogue("책상 밑 금고", `교실에 놓인 <b style="color:green;">초록색</b> 책은 총 몇 권일까?`, safeDetails);
-                    break;
-                case 'door': openModal('escape-modal'); break;
-            }
-            updateObjectStates();
-        }
-        function solveQuiz(isCorrect) {
-            const puzzle = puzzles.window;
-            if (isCorrect) { puzzle.solved = true; updateDiscoveredHints('window'); showDialogue("정답!", "맞아! '응결' 현상이야.", `<p class="clue">비밀번호 조각: [ ${puzzle.number} ]</p>`); updateObjectStates(); } 
-            else { alert("음... 그건 다른 현상인 것 같아."); }
-        }
-        function solveSafe() {
-            const puzzle = puzzles.safe;
-            if (document.getElementById('safe-answer').value === puzzle.number) { puzzle.solved = true; updateDiscoveredHints('safe'); showDialogue("정답!", `정확해! 초록색 책은 ${puzzle.number}권이 있다.`, `<p class="clue">비밀번호 조각: [ ${puzzle.number} ]</p>`); updateObjectStates(); } 
-            else { alert("개수가 틀린 것 같다. 다시 세어보자."); }
-        }
-        function createMemoryGame(id) {
-            const icons = ['🐼', '🐼', '🦊', '🦊', '🐸', '🐸', '🐵', '🐵'].sort(() => 0.5 - Math.random());
-            const boardHTML = `<div id="memory-board">${icons.map(icon => `<div class="memory-card" data-icon="${icon}"><div class="face card-back"></div><div class="face card-front">${icon}</div></div>`).join('')}</div>`;
-            showDialogue("전자칠판", "귀여운 동물 카드의 짝을 모두 맞추자.", boardHTML);
-            let firstCard, secondCard, lockBoard = false, matchedPairs = 0;
-            document.querySelectorAll('.memory-card').forEach(card => card.addEventListener('click', function() {
-                if (lockBoard || this === firstCard || this.classList.contains('matched')) return;
-                playSound('flip'); this.classList.add('flip'); if (!firstCard) { firstCard = this; return; }
-                secondCard = this; lockBoard = true;
-                if (firstCard.dataset.icon === secondCard.dataset.icon) {
-                    firstCard.classList.add('matched'); secondCard.classList.add('matched');
-                    matchedPairs++; playSound('correct');
-                    if(matchedPairs === 4) {
-                        const puzzle = puzzles[id]; puzzle.solved = true; updateDiscoveredHints(id);
-                        setTimeout(() => showDialogue("성공!", "모든 카드의 짝을 맞췄다!", `<p class="clue">비밀번호 조각: [ ${puzzle.number} ]</p>`), 500);
-                        updateObjectStates();
+        // --- DOM 요소 ---
+        const introScreen = document.getElementById('intro-screen');
+        const startScreen = document.getElementById('start-screen');
+        const timerElement = document.getElementById('timer');
+        const allRooms = document.querySelectorAll('.room');
+        const escapeSuccessMessage = document.getElementById('escape-success');
+        const puzzleContainer = document.getElementById('puzzle-container');
+        const puzzleQuestion = document.getElementById('puzzle-question');
+        const puzzleOptions = document.getElementById('puzzle-options');
+        const hintsDisplay = document.getElementById('hints');
+        const successMessageText = document.getElementById('success-message-text');
+        const clickPrompt = document.getElementById('click-prompt');
+
+        const bgm = document.getElementById('bgm');
+        const clickSound = document.getElementById('click-sound');
+
+        const introLines = [
+            { el: document.getElementById('intro-line-1'), text: "2025년, 평화로운 대구교대..." },
+            { el: document.getElementById('intro-line-2'), text: "정체불명의 시스템이 학교 전체를 잠갔다." },
+            { el: document.getElementById('intro-line-3'), text: "탈출할 방법은 단 하나," },
+            { el: document.getElementById('intro-line-4'), text: "안전 지식을 통해 증명하는 것 뿐." }
+        ];
+
+        function typeWriter(element, text, speed) {
+            return new Promise(resolve => {
+                let i = 0;
+                element.innerHTML = ''; 
+                const cursor = '<span class="typing-cursor"></span>';
+                element.innerHTML = cursor;
+
+                const typing = setInterval(() => {
+                    if (i < text.length) {
+                        element.innerHTML = text.substring(0, i + 1) + cursor;
+                        i++;
+                    } else {
+                        clearInterval(typing);
+                        setTimeout(resolve, 500); 
                     }
-                    [firstCard, secondCard, lockBoard] = [null, null, false];
-                } else { setTimeout(() => { firstCard.classList.remove('flip'); secondCard.classList.remove('flip'); [firstCard, secondCard, lockBoard] = [null, null, false]; }, 1000); }
-            }));
+                }, speed);
+            });
         }
-        function startTimer() { if (timerInterval) return; document.getElementById('top-ui-bar').style.display = 'flex'; document.getElementById('discovered-hints-display').style.display = 'block'; timerInterval = setInterval(() => { secondsElapsed++; const minutes = Math.floor(secondsElapsed / 60).toString().padStart(2, '0'); const seconds = (secondsElapsed % 60).toString().padStart(2, '0'); document.getElementById('timer-display').textContent = `${minutes}:${seconds}`; }, 1000); }
-        window.onload = () => {
-            const introContainer = document.getElementById('cinematic-intro'); const line1 = document.getElementById('intro-line-1');
-            setTimeout(() => { line1.style.opacity = '1'; }, 500);
-            setTimeout(() => { playSound('thunder'); }, 1500);
-            setTimeout(() => { line1.style.opacity = '0'; }, 4500);
-            setTimeout(() => { line1.textContent = 'You are trapped.'; line1.style.opacity = '1'; }, 6000);
-            setTimeout(() => { line1.style.opacity = '0'; }, 9000);
-            setTimeout(() => { line1.innerHTML = 'Find the clues. Solve the puzzle.<br><small style="font-size: 0.5em; opacity: 0.7;">(Click to Continue)</small>'; line1.style.transition = 'opacity 0.5s'; line1.style.opacity = '1'; }, 10500);
-            introContainer.onclick = () => { if (line1.textContent.includes('Click')) { introContainer.style.transition = 'opacity 1s'; introContainer.style.opacity = '0'; setTimeout(() => { introContainer.remove(); openModal('player-info-modal'); }, 1000); } };
-            initGame();
-        };
-        document.getElementById('submit-info-btn').addEventListener('click', () => { const grade = document.getElementById('player-grade').value.trim(); const classNum = document.getElementById('player-class').value.trim(); const name = document.getElementById('player-name').value.trim(); if (!grade || !classNum || !name) { alert('모든 정보를 입력해주세요!'); return; } gameState = { player: { grade, classNum, name } }; closeModal('player-info-modal'); openModal('intro-modal'); });
-        document.getElementById('start-gameplay-btn').addEventListener('click', () => { closeModal('intro-modal'); document.getElementById('game-wrapper').style.display = 'block'; sfx.bgm.play(); startTimer(); animateRain(); setInterval(() => { const overlay = document.getElementById('flash-overlay'); overlay.style.transition = 'opacity 0.05s'; overlay.style.opacity = '0.8'; playSound('thunder'); setTimeout(() => overlay.style.opacity = '0', 100); }, 22000); });
-        document.querySelectorAll('.interactive-object').forEach(obj => obj.addEventListener('click', (e) => handleObjectClick(e.currentTarget.dataset.id)));
-        document.getElementById('escape-btn').onclick = () => {
-            if (document.getElementById('final-password').value === FINAL_PASSWORD) {
-                clearInterval(timerInterval); const finalTime = document.getElementById('timer-display').textContent;
-                playSound('unlock'); setTimeout(() => playSound('correct'), 300); closeModal('escape-modal'); document.getElementById('game-wrapper').style.display = 'none'; document.getElementById('success-screen').style.display = 'flex'; document.getElementById('final-time-display').textContent = `소요시간: ${finalTime}`;
-                Object.values(sfx).forEach(s => { s.pause(); s.currentTime = 0; });
-            } else { alert('비밀번호가 틀렸습니다!'); }
-        };
-        document.getElementById('restart-btn').onclick = () => location.reload();
+        
+        async function startIntroTyping() {
+            for (const line of introLines) {
+                await typeWriter(line.el, line.text, 100); 
+            }
+            introLines[introLines.length - 1].el.querySelector('.typing-cursor').remove();
+            clickPrompt.style.visibility = 'visible';
+            introFinished = true;
+        }
+        
+        window.onload = startIntroTyping;
+
+        function showStartScreen() {
+            if (!introFinished) return;
+
+            clickSound.play();
+            bgm.volume = 0.5;
+            bgm.play();
+
+            introScreen.classList.add('fade-out'); 
+            setTimeout(() => {
+                introScreen.style.display = 'none';
+                startScreen.style.display = 'flex';
+            }, 1000);
+        }
+        
+        function startGame() {
+            const gradeInput = document.getElementById('grade-input').value;
+            const nameInput = document.getElementById('name-input').value.trim();
+            if (!gradeInput || !nameInput) { alert('학년과 이름을 모두 입력해주세요!'); return; }
+            playerName = nameInput;
+
+            startScreen.style.display = 'none';
+            timerElement.style.display = 'block';
+            startTimer();
+            goToRoom(1);
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                elapsedSeconds++;
+                const minutes = Math.floor(elapsedSeconds / 60);
+                const seconds = elapsedSeconds % 60;
+                timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function goToRoom(roomNumber) { 
+            allRooms.forEach(room => room.classList.remove('current-room')); 
+            if(roomNumber > 0) {
+                document.getElementById(`room${roomNumber}`).classList.add('current-room'); 
+            }
+        }
+        
+        function showPuzzle(puzzleId) { 
+            if (collectedHints[puzzleId]) { alert('이미 해결한 문제입니다!'); return; } 
+            const puzzleData = puzzles[puzzleId]; 
+            puzzleQuestion.textContent = puzzleData.question; 
+            puzzleOptions.innerHTML = ''; 
+            puzzleData.options.forEach(optionText => { 
+                const button = document.createElement('button'); 
+                button.textContent = optionText; 
+                button.onclick = () => checkPuzzleAnswer(puzzleId, optionText, puzzleData); 
+                puzzleOptions.appendChild(button); 
+            }); 
+            puzzleContainer.style.display = 'block'; 
+        }
+
+        function checkPuzzleAnswer(puzzleId, selectedOption, puzzleData) { 
+            if (selectedOption === puzzleData.correctAnswer) { 
+                alert(`정답입니다! 힌트 숫자 '${puzzleData.hint}'를 획득했습니다!`); 
+                collectedHints[puzzleId] = puzzleData.hint; 
+                updateHintsDisplay(); 
+            } else { 
+                alert('틀렸습니다. 다시 한번 생각해 보세요!'); 
+            } 
+            puzzleContainer.style.display = 'none'; 
+        }
+        
+        function updateHintsDisplay() { 
+            const hintOrder = ['earthquake', 'typhoon', 'fireExtinguisher']; 
+            let hintText = ''; 
+            hintOrder.forEach((id, index) => { 
+                hintText += `${index + 1}번째 힌트: ${collectedHints[id] || '?'}<br>`; 
+            }); 
+            hintsDisplay.innerHTML = hintText; 
+        }
+
+        function checkPassword() { 
+            const passwordInput = document.getElementById('password-input-room1');
+            if (passwordInput.value === correctPassword) { 
+                alert("정답입니다! 다음 장소로 이동합니다."); 
+                goToRoom(2); 
+            } else { 
+                alert("비밀번호가 틀렸습니다. 모은 힌트를 다시 확인해 보세요!"); 
+                passwordInput.value = ""; 
+            } 
+        }
+
+        function handleRoom2Click() {
+            if (room2State === 0) {
+                document.querySelector('#room2').style.backgroundImage = "url('Whisk_storyboard3664d7454c834918aaee8c56.png')";
+                document.querySelector('#room2 .clickable-layer h2').textContent = '문이 열렸다. 클릭하여 퀴즈 풀기';
+                room2State = 1;
+            } else if (room2State === 1) {
+                showFinalPuzzle('room2', () => {
+                    alert("정답입니다! 엘리베이터를 탈출합니다.");
+                    goToRoom(3);
+                });
+            }
+        }
+
+        function handleRoom3Click() {
+            if (room3State === 0) {
+                document.querySelector('#room3').style.backgroundImage = "url('KakaoTalk_20250720_095411093_02.jpg')";
+                document.querySelector('#room3 .clickable-layer h2').textContent = '드디어 출구가 보인다! 클릭하여 마지막 관문 통과하기';
+                room3State = 1;
+            } else if (room3State === 1) {
+                showFinalPuzzle('room3', showSuccessScreen);
+            }
+        }
+        
+        function showFinalPuzzle(roomId, onSuccessCallback) {
+            const puzzleData = finalPuzzles[roomId];
+            puzzleQuestion.textContent = puzzleData.question;
+            puzzleOptions.innerHTML = '';
+            puzzleData.options.forEach(optionText => {
+                const button = document.createElement('button');
+                button.textContent = optionText;
+                button.onclick = () => checkFinalAnswer(optionText, puzzleData, onSuccessCallback);
+                puzzleOptions.appendChild(button);
+            });
+            puzzleContainer.style.display = 'block';
+        }
+
+        function checkFinalAnswer(selectedOption, puzzleData, onSuccessCallback) {
+            if (selectedOption === puzzleData.correctAnswer) {
+                puzzleContainer.style.display = 'none';
+                onSuccessCallback();
+            } else {
+                alert('틀렸습니다. 안전수칙을 다시 한번 생각해 보세요!');
+            }
+        }
+        
+        // [수정] 게임 클리어 시 팝업만 표시하도록 변경
+        function showSuccessScreen() {
+            alert("정답입니다! 드디어 탈출에 성공했습니다!");
+            clearInterval(timerInterval); 
+            bgm.pause(); 
+            
+            const finalTime = timerElement.textContent; 
+            
+            successMessageText.innerHTML = `축하합니다, <strong>${playerName}</strong> 학생!<br>대구교대에서 무사히 탈출했습니다!<br><br><strong>탈출 기록: ${finalTime}</strong>`;
+            
+            goToRoom(0); 
+
+            // [삭제] 배경을 표시하는 코드 삭제
+            escapeSuccessMessage.style.display = 'block'; 
+        }
+
+        // --- 초기화 ---
+        updateHintsDisplay();
     </script>
 </body>
 </html>
